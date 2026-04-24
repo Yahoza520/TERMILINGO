@@ -1,0 +1,653 @@
+// TermiLingo - Tercumanlik SaaS Platformu
+// Veritabani Semasi (Prisma ORM + PostgreSQL)
+// ============================================
+// Bu sema asagidaki modulleri kapsar:
+// 1. Kullanici & Kimlik Dogrulama
+// 2. Tercuman Profili (Yazili + Sozlu Ceviri)
+// 3. Terminoloji Sozlugu & Portfolyo
+// 4. Musaitlik Takvimi (Konferans/Sozlu Ceviri)
+// 5. Ogrenci/Junior Sistemi (Mentor-Mentee)
+// 6. Abonelik & Fiyatlandirma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 1. KULLANICI & KIMLIK DOGRULAMA
+// ============================================
+
+/// Ana kullanici tablosu - hem tercumanlar hem isverenler icin
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  passwordHash  String?
+  image         String?
+  phone         String?
+  role          UserRole  @default(TRANSLATOR)
+
+  // Ogrenci/Junior alanlari
+  isStudent     Boolean   @default(false)
+  university    String?   // Universite adi (orn: "Bogazici Universitesi")
+  eduEmail      String?   // .edu.tr uzantili mail
+  eduVerified   Boolean   @default(false) // .edu.tr dogrulamasi yapildi mi?
+  graduationYear Int?     // Beklenen mezuniyet yili
+
+  // Zaman damgalari
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Iliskiler
+  translatorProfile TranslatorProfile?
+  employerProfile   EmployerProfile?
+  accounts          Account[]
+  sessions          Session[]
+  subscription      Subscription?
+
+  // Mentor-Mentee iliskileri
+  mentorships       Mentorship[]  @relation("Mentor")
+  menteeships       Mentorship[]  @relation("Mentee")
+
+  // Teklif & Bildirim iliskileri
+  proposals         Proposal[]
+  notifications     Notification[]
+
+  // Musteri talepleri
+  clientRequests    TranslationRequest[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  TRANSLATOR   // Tercuman (Bireysel/Kurumsal)
+  EMPLOYER     // Isveren (ceviri yaptirmak isteyen)
+  STUDENT      // Ogrenci/Junior tercuman
+  ADMIN        // Platform yoneticisi
+}
+
+// NextAuth.js icin gerekli tablolar
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// 2. TERCUMAN PROFILI (Yazili + Sozlu Ceviri)
+// ============================================
+
+/// Tercumanin detayli profil bilgileri
+model TranslatorProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Temel bilgiler
+  title       String?  // "Yeminli Tercuman", "Konferans Tercumani" vb.
+  bio         String?  @db.Text // Kisa tanitim yazisi
+  city        String?  // Konum (Istanbul, Ankara vb.)
+  country     String   @default("Turkiye")
+
+  // Deneyim & Yetkinlik
+  experienceYears  Int      @default(0)
+  tier             TranslatorTier @default(JUNIOR)
+  isVerified       Boolean  @default(false) // Platform tarafindan dogrulandi mi?
+  badge            ProfileBadge?  // Rozet (Pro, Enterprise, Akademik vb.)
+
+  // Dil ciftleri (JSON array: [{source: "TR", target: "EN", level: "Native"}])
+  languagePairs    Json     @default("[]")
+
+  // Uzmanlik alanlari (JSON array: ["Hukuk", "Tip", "Teknik", "Maden Hukuku"])
+  specializations  Json     @default("[]")
+
+  // CAT Tools (JSON array: ["Trados", "MemoQ", "Smartcat", "Wordfast"])
+  catTools         Json     @default("[]")
+
+  // Sertifikalar (JSON array: [{name: "YDS", score: "95", year: 2022}])
+  certifications   Json     @default("[]")
+
+  // Egitim bilgileri (JSON array: [{school, degree, field, year}])
+  education        Json     @default("[]")
+
+  // Referanslar (JSON array: [{name, company, contact, note}])
+  references       Json     @default("[]")
+
+  // --- SOZLU CEVIRI ALANLARI ---
+  interpreterTypes InterpreterType[] // Simultane, Ardil, Irtibat
+  hasInfoport      Boolean  @default(false) // Kendi similtane sistemi var mi?
+  equipmentNotes   String?  // Ekipman detaylari
+
+  // Fiyatlandirma
+  hourlyRate       Decimal? @db.Decimal(10, 2) // Saatlik ucret
+  dailyRate        Decimal? @db.Decimal(10, 2) // Gunluk ucret
+  wordRate         Decimal? @db.Decimal(10, 4) // Kelime basi ucret (yazili)
+  currency         String   @default("TRY")
+
+  // Profil gorunurlugu
+  isPublic         Boolean  @default(true)
+  profileSlug      String?  @unique // URL-friendly profil adresi
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Iliskiler
+  glossaries       Glossary[]
+  portfolioAssets  PortfolioAsset[]
+  availability     AvailabilitySlot[]
+  reviews          Review[]
+
+  @@map("translator_profiles")
+}
+
+enum TranslatorTier {
+  JUNIOR      // Ogrenci/Stajyer
+  INDIVIDUAL  // Bireysel tercuman
+  PRO         // Profesyonel (dogrulanmis)
+  ENTERPRISE  // Kurumsal/Ajans
+}
+
+enum ProfileBadge {
+  ACADEMIC_CANDIDATE  // Akademik Aday (ogrenci)
+  VERIFIED_STUDENT    // Dogrulanmis Ogrenci (.edu.tr)
+  CERTIFIED_PRO       // Sertifikali Profesyonel
+  TOP_RATED           // En Yuksek Puanli
+  ENTERPRISE          // Kurumsal Tercuman
+}
+
+enum InterpreterType {
+  SIMULTANEOUS  // Similtane (Konferans)
+  CONSECUTIVE   // Ardil
+  LIAISON       // Irtibat tercumanligi
+  WHISPERED     // Fisildama tercumanligi
+}
+
+// ============================================
+// 3. ISVEREN PROFILI
+// ============================================
+
+model EmployerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String?
+  sector      String?  // "Hukuk", "Saglik", "Teknoloji" vb.
+  taxId       String?  // Vergi No
+  website     String?
+  city        String?
+  country     String   @default("Turkiye")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Iliskiler
+  projects    Project[]
+  reviews     Review[]
+
+  @@map("employer_profiles")
+}
+
+// ============================================
+// 4. TERMINOLOJI SOZLUGU & PORTFOLYO
+// ============================================
+
+/// Tercumanin uzmanlik alanina gore terminoloji sozlugu
+/// Orn: "Maden Hukuku" alaninda 20-30 kelimelik liste
+model Glossary {
+  id            String   @id @default(cuid())
+  profileId     String
+  profile       TranslatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  title         String   // "Maden Hukuku Terminolojisi"
+  field         String   // "Maden Hukuku", "Yapay Zeka" vb.
+  sourceLanguage String  // "TR"
+  targetLanguage String  // "EN"
+  description   String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Iliskiler
+  terms         GlossaryTerm[]
+
+  @@map("glossaries")
+}
+
+/// Sozlukteki her bir terim cifti (Key-Value pair)
+model GlossaryTerm {
+  id          String   @id @default(cuid())
+  glossaryId  String
+  glossary    Glossary @relation(fields: [glossaryId], references: [id], onDelete: Cascade)
+
+  sourceTerm  String   // Kaynak dildeki terim
+  targetTerm  String   // Hedef dildeki karsiligi
+  context     String?  // Kullanim baglami
+  notes       String?  // Ek notlar
+
+  @@map("glossary_terms")
+}
+
+/// Tercumanin portfolyo varliklari (referans metinler, sertifika gorselleri vb.)
+model PortfolioAsset {
+  id          String        @id @default(cuid())
+  profileId   String
+  profile     TranslatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  type        PortfolioType
+  title       String        // "Hukuk Metni - Turkce/Ingilizce"
+  field       String?       // Uzmanlik alani
+
+  // Referans On Izleme (Source/Target kesitleri)
+  sourceText  String?       @db.Text // Orijinal metin (maks 200 kelime)
+  targetText  String?       @db.Text // Cevrilmis metin (maks 200 kelime)
+
+  // Dosya (sertifika, belge gorseli vb.)
+  fileUrl     String?
+  fileType    String?       // "pdf", "image", "markdown"
+
+  // Markdown formatinda ek aciklama
+  description String?       @db.Text
+
+  isPublic    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+
+  @@map("portfolio_assets")
+}
+
+enum PortfolioType {
+  TRANSLATION_SAMPLE  // Ceviri ornegi (Oncesi/Sonrasi)
+  CERTIFICATE         // Sertifika gorseli
+  REFERENCE_LETTER    // Referans mektubu
+  PROJECT_SUMMARY     // Proje ozeti
+}
+
+// ============================================
+// 5. MUSAITLIK TAKVIMI (Konferans/Sozlu Ceviri)
+// ============================================
+
+/// Tercumanin musaitlik takvimi - isverenler etkinlik tarihine gore filtreleme yapabilir
+model AvailabilitySlot {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     TranslatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  date        DateTime // Tarih
+  startTime   DateTime // Baslangic saati
+  endTime     DateTime // Bitis saati
+  isAvailable Boolean  @default(true)
+  city        String?  // Hangi sehirdeyse (konum bazli eslestirme icin)
+
+  // Opsiyonel: rezervasyon bilgisi
+  isBooked    Boolean  @default(false)
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@map("availability_slots")
+}
+
+// ============================================
+// 6. PROJE & IS ILANI
+// ============================================
+
+model Project {
+  id            String        @id @default(cuid())
+  employerId    String
+  employer      EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+  title         String
+  description   String?       @db.Text
+  type          ProjectType
+  status        ProjectStatus @default(OPEN)
+
+  // Dil ve alan
+  sourceLanguage String
+  targetLanguage String
+  field          String?      // Uzmanlik alani
+
+  // Konum (sozlu ceviri icin)
+  city           String?
+  venue          String?      // Mekan adi
+  eventDate      DateTime?    // Etkinlik tarihi
+
+  // Butce
+  budget         Decimal?     @db.Decimal(10, 2)
+  currency       String       @default("TRY")
+
+  // Zaman
+  deadline       DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Iliskiler
+  availabilitySlots AvailabilitySlot[]
+
+  @@map("projects")
+}
+
+enum ProjectType {
+  WRITTEN       // Yazili ceviri
+  SIMULTANEOUS  // Similtane sozlu ceviri
+  CONSECUTIVE   // Ardil sozlu ceviri
+  LIAISON       // Irtibat tercumanligi
+}
+
+enum ProjectStatus {
+  OPEN          // Acik (basvuru bekleniyor)
+  IN_PROGRESS   // Devam ediyor
+  COMPLETED     // Tamamlandi
+  CANCELLED     // Iptal edildi
+}
+
+// ============================================
+// 7. MENTOR-MENTEE SISTEMI
+// ============================================
+
+/// Kidemli tercumanlar ogrencilere mentorlik yapabilir
+model Mentorship {
+  id          String           @id @default(cuid())
+  mentorId    String
+  mentor      User             @relation("Mentor", fields: [mentorId], references: [id])
+  menteeId    String
+  mentee      User             @relation("Mentee", fields: [menteeId], references: [id])
+
+  status      MentorshipStatus @default(PENDING)
+  field       String?          // Mentorlugun alani
+  notes       String?          @db.Text
+  startDate   DateTime         @default(now())
+  endDate     DateTime?
+
+  // Mentor onay kayitlari
+  approvals   MentorApproval[]
+
+  @@unique([mentorId, menteeId])
+  @@map("mentorships")
+}
+
+enum MentorshipStatus {
+  PENDING    // Beklemede
+  ACTIVE     // Aktif
+  COMPLETED  // Tamamlandi
+  REJECTED   // Reddedildi
+}
+
+/// Mentor, ogrencinin cevirisini "Onaylama" kaydi
+model MentorApproval {
+  id            String     @id @default(cuid())
+  mentorshipId  String
+  mentorship    Mentorship @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  translationTitle String  // Hangi ceviri onaylandi
+  rating           Int     @default(0) // 1-5 arasi puan
+  feedback         String? @db.Text
+  approvedAt       DateTime @default(now())
+
+  @@map("mentor_approvals")
+}
+
+// ============================================
+// 8. DEGERLENDIRME SISTEMI
+// ============================================
+
+model Review {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     TranslatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  employerId  String
+  employer    EmployerProfile   @relation(fields: [employerId], references: [id])
+
+  rating      Int      // 1-5 arasi
+  comment     String?  @db.Text
+  field       String?  // Hangi alanda yapilan is icin
+
+  createdAt   DateTime @default(now())
+
+  @@map("reviews")
+}
+
+// ============================================
+// 9. ABONELIK & FIYATLANDIRMA
+// ============================================
+
+model Subscription {
+  id          String             @id @default(cuid())
+  userId      String             @unique
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan        SubscriptionPlan
+  status      SubscriptionStatus @default(ACTIVE)
+
+  // Odeme bilgileri
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  iyzicoSubscriptionId String?  @unique
+
+  // Donem bilgileri
+  currentPeriodStart   DateTime @default(now())
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionPlan {
+  FREE       // Ucretsiz (sinirli ozellikler)
+  STUDENT    // Ogrenci (sembolik ucret)
+  INDIVIDUAL // Bireysel tercuman
+  PRO        // Profesyonel
+  ENTERPRISE // Kurumsal
+}
+
+enum SubscriptionStatus {
+  ACTIVE     // Aktif
+  PAST_DUE   // Odeme gecikti
+  CANCELLED  // Iptal edildi
+  TRIALING   // Deneme suresi
+}
+
+// ============================================
+// 10. FIYATLANDIRMA MANTIGI (Pricing Logic)
+// ============================================
+
+/// Her abonelik planinin fiyat ve ozellik tanimlari
+model PricingPlan {
+  id              String           @id @default(cuid())
+  plan            SubscriptionPlan @unique
+  name            String           // "Ogrenci Paketi", "Bireysel Paket" vb.
+  description     String?          @db.Text
+  monthlyPrice    Decimal          @db.Decimal(10, 2)
+  yearlyPrice     Decimal          @db.Decimal(10, 2) // Yillik indirimli fiyat
+  currency        String           @default("TRY")
+
+  // Plan limitleri (JSON: {maxProjects, maxGlossaries, maxPortfolioAssets, ...})
+  features        Json             @default("{}")
+  limits          Json             @default("{}")
+
+  isActive        Boolean          @default(true)
+  sortOrder       Int              @default(0)
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("pricing_plans")
+}
+
+// ============================================
+// 11. CEVIRI TALEPLERI (Translation Requests)
+// ============================================
+
+/// Musterinin olusturdugu ceviri/tercumanlik talepleri
+model TranslationRequest {
+  id              String               @id @default(cuid())
+  clientUserId    String?              // Giris yapmis musterinin ID'si
+  clientUser      User?                @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
+  clientName      String               // Musterinin adi
+  clientEmail     String               // Musterinin e-postasi
+  clientPhone     String?              // Musterinin telefonu
+
+  // Talep detaylari
+  title           String               // "Hukuk Belgesi Cevirisi"
+  description     String?              @db.Text
+  type            RequestType          // WRITTEN, SIMULTANEOUS, CONSECUTIVE
+  sourceLanguage  String               // "TR"
+  targetLanguage  String               // "EN"
+  field           String?              // "Hukuk", "Tip" vb.
+
+  // Konum (sozlu ceviri icin)
+  city            String?
+  venue           String?
+  eventDate       DateTime?
+
+  // Butce ve zamanlama
+  budget          Decimal?             @db.Decimal(10, 2)
+  currency        String               @default("TRY")
+  deadline        DateTime?
+  wordCount       Int?                 // Yazili ceviri icin kelime sayisi
+
+  // Durum & Arsivleme
+  status          RequestStatus        @default(OPEN)
+  isArchived      Boolean              @default(false)
+
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  // Iliskiler
+  proposals       Proposal[]
+  notifications   Notification[]
+
+  @@map("translation_requests")
+}
+
+enum RequestType {
+  WRITTEN        // Yazili ceviri
+  SIMULTANEOUS   // Similtane sozlu ceviri
+  CONSECUTIVE    // Ardil sozlu ceviri
+  LIAISON        // Irtibat tercumanligi
+}
+
+enum RequestStatus {
+  OPEN           // Acik (teklif bekleniyor)
+  IN_REVIEW      // Teklifler degerlendiriliyor
+  ASSIGNED       // Tercuman atandi
+  COMPLETED      // Tamamlandi
+  CANCELLED      // Iptal edildi
+}
+
+// ============================================
+// 12. TEKLIFLER (Proposals)
+// ============================================
+
+/// Tercumanlarin taleplere verdigi teklifler
+model Proposal {
+  id              String           @id @default(cuid())
+  requestId       String
+  request         TranslationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  translatorId    String
+  translator      User             @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+
+  // Teklif detaylari
+  price           Decimal          @db.Decimal(10, 2) // Teklif edilen ucret
+  currency        String           @default("TRY")
+  message         String?          @db.Text // Musteriye mesaj
+  estimatedDays   Int?             // Tahmini teslim suresi (gun)
+
+  // Durum & Arsivleme
+  status          ProposalStatus   @default(PENDING)
+  isArchived      Boolean          @default(false)
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([requestId, translatorId]) // Bir tercuman bir talebe bir teklif verir
+  @@map("proposals")
+}
+
+enum ProposalStatus {
+  PENDING        // Beklemede
+  SENT           // Musteriye gonderildi (e-posta ile)
+  ACCEPTED       // Kabul edildi
+  REJECTED       // Reddedildi
+  WITHDRAWN      // Geri cekildi
+  ARCHIVED       // Arsivlendi
+}
+
+// ============================================
+// 13. BILDIRIMLER (Notifications)
+// ============================================
+
+/// Uygulama ici bildirimler
+model Notification {
+  id          String             @id @default(cuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        NotificationType
+  title       String
+  message     String             @db.Text
+  isRead      Boolean            @default(false)
+
+  // Opsiyonel: iliskili talep
+  requestId   String?
+  request     TranslationRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  // Metadata (JSON: ek bilgiler)
+  metadata    Json?
+
+  createdAt   DateTime           @default(now())
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  NEW_REQUEST     // Yeni ceviri talebi
+  PROPOSAL_SENT   // Teklif gonderildi
+  PROPOSAL_ACCEPTED // Teklif kabul edildi
+  PROPOSAL_REJECTED // Teklif reddedildi
+  SYSTEM          // Sistem bildirimi
+}
