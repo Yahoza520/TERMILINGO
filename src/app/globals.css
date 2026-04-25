@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -12,15 +13,61 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Dark mode'u devre dışı bırak - platform light mode olacak */
+/* Kullanıcı dark mode'daysa bile formlar okunabilir kalacak */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Input/Select/Textarea'ların her zaman okunabilir olmasını sağla */
+input,
+select,
+textarea {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  color-scheme: light;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Select option'ları da düzelt */
+option {
+  color: #111827;
+  background-color: #ffffff;
+}
+
+/* Focus state'de de okunabilir kalsın */
+input:focus,
+select:focus,
+textarea:focus {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+/* Date/Time input'ları da düzelt */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  color-scheme: light;
+}
+
+/* Checkbox ve radio'lar */
+input[type="checkbox"],
+input[type="radio"] {
+  background-color: #ffffff !important;
+  accent-color: #18181b;
+}
+
+/* Admin paneli dark mode hariç (orada kendi renkleri var) */
+.admin-input {
+  color: #ffffff !important;
+  background-color: #27272a !important;
 }

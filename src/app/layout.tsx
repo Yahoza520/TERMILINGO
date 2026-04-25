@@ -19,6 +19,7 @@ export default function RootLayout({
     <html
       lang="tr"
       className="h-full antialiased font-sans"
+      style={{ colorScheme: "light" }}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
