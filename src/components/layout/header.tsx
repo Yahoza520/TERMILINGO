@@ -285,6 +285,18 @@ export default function Header() {
                             <Shield className="w-4 h-4" />
                             Gizlilik
                           </Link>
+                          {(session.user as any)?.role === "ADMIN" && (
+                            <>
+                              <div className="border-t border-gray-100 my-1" />
+                              <Link
+                                href="/admin"
+                                className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                              >
+                                <Shield className="w-4 h-4" />
+                                Admin Panel
+                              </Link>
+                            </>
+                          )}
                         </div>
 
                         <div className="border-t border-gray-100 pt-1">

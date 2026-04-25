@@ -209,14 +209,14 @@ export default function RegisterPage() {
             <div className="flex items-start gap-2">
               <input type="checkbox" required className="mt-1 rounded border-gray-300 text-zinc-900 focus:ring-zinc-900" />
               <p className="text-xs text-gray-600">
-                <Link href="/kvkk" className="text-zinc-900 font-medium hover:underline">
+                <a href="/kvkk" target="_blank" rel="noopener noreferrer" className="text-zinc-900 font-medium hover:underline">
                   Aydınlatma Metni
-                </Link>
+                </a>
                 {" "}ve{" "}
-                <Link href="/gizlilik" className="text-zinc-900 font-medium hover:underline">
+                <a href="/gizlilik" target="_blank" rel="noopener noreferrer" className="text-zinc-900 font-medium hover:underline">
                   Gizlilik Politikası
-                </Link>
-                {' '}ni okudum ve kabul ediyorum.
+                </a>
+                {' '}nı okudum ve kabul ediyorum.
               </p>
             </div>
 
