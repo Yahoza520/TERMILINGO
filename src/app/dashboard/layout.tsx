@@ -58,17 +58,29 @@ function SidebarContent({
           </div>
         </div>
 
-        {/* Panel Switcher */}
-        <div className="mt-3 flex gap-1">
-          <Link href="/dashboard/musteri" onClick={onNavigate}
-            className={`flex-1 text-center py-1.5 text-xs font-medium rounded-lg transition-all ${
-              isMusteriPanel ? "bg-emerald-50 text-emerald-700" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-            }`}>Müşteri</Link>
-          <Link href="/dashboard/tercuman" onClick={onNavigate}
-            className={`flex-1 text-center py-1.5 text-xs font-medium rounded-lg transition-all ${
-              isTercumanPanel ? "bg-violet-50 text-violet-700" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-            }`}>Tercüman</Link>
-        </div>
+        {/* Panel Switcher — role'e göre gösterilir */}
+        {(() => {
+          const role = session?.user?.role as string | undefined;
+          const showMusteri = role === "EMPLOYER" || role === "ADMIN";
+          const showTercuman = role === "TRANSLATOR" || role === "STUDENT" || role === "ADMIN";
+          if (!showMusteri && !showTercuman) return null;
+          return (
+            <div className="mt-3 flex gap-1">
+              {showMusteri && (
+                <Link href="/dashboard/musteri" onClick={onNavigate}
+                  className={`flex-1 text-center py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    isMusteriPanel ? "bg-emerald-50 text-emerald-700" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                  }`}>Müşteri</Link>
+              )}
+              {showTercuman && (
+                <Link href="/dashboard/tercuman" onClick={onNavigate}
+                  className={`flex-1 text-center py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    isTercumanPanel ? "bg-violet-50 text-violet-700" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                  }`}>Tercüman</Link>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Navigation Links */}

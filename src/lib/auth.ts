@@ -73,27 +73,21 @@ export const authOptions: NextAuthOptions = {
       if (account && profile) {
         token.picture = (profile as any)?.picture || (profile as any)?.image;
       }
+      // Google OAuth'ta role token'a yazılmamış olabilir; DB'den çek
+      if (!token.role && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        token.role = dbUser?.role ?? "TRANSLATOR";
+      }
       return token;
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ account }) {
+      // PrismaAdapter Google kullanıcısını otomatik yönetir;
+      // manuel oluşturma kaldırıldı — çift kayıt çakışmasını önler.
       if (account?.provider === "google") {
-        // OAuth ile giriş - kullanıcı var mı kontrol et
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-        });
-
-        if (!existingUser) {
-          // Yeni kullanıcı oluştur
-          await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name || user.email!.split("@")[0],
-              role: "TRANSLATOR",
-              image: user.image || (profile as any)?.picture || (profile as any)?.image,
-              emailVerified: new Date(), // Google login trusted
-            },
-          });
-        }
+        return true;
       }
       return true;
     },
