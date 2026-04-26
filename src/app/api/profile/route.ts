@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
           dailyRate: body.dailyRate ? parseFloat(body.dailyRate) : null,
           wordRate: body.wordRate ? parseFloat(body.wordRate) : null,
           currency: body.currency,
+          isPublic: true, // Görünürlüğü aç
           updatedAt: new Date(),
         },
         include: {
@@ -159,6 +160,7 @@ export async function POST(request: NextRequest) {
         dailyRate: body.dailyRate ? parseFloat(body.dailyRate) : null,
         wordRate: body.wordRate ? parseFloat(body.wordRate) : null,
         currency: body.currency || "TRY",
+        isPublic: true, // Görünürlüğü aç
       },
       include: {
         glossaries: true,

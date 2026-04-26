@@ -17,19 +17,11 @@ import {
 } from "lucide-react";
 
 // ===========================================
-// ADIM ADIM PROFIL OLUSTURMA FORMU
-// Tercumanlar bu formu doldurarak platformdaki
-// profillerini olusturur.
+// PROFIL DUZENLEME FORMU (TEK SAYFA)
+// Tercumanlar tüm bilgilerini tek bir ekranda
+// gorebilir ve guncelleyebilir.
 // ===========================================
 
-const STEPS = [
-  { label: "Kişisel", description: "Temel bilgiler" },
-  { label: "Diller", description: "Dil çiftleri" },
-  { label: "Uzmanlık", description: "Alan & araçlar" },
-  { label: "Sözlü", description: "Konferans bilgileri" },
-  { label: "Portfolyo", description: "Örnek & sertifika" },
-  { label: "Fiyat", description: "Ücretlendirme" },
-];
 
 // Dil seçenekleri
 const LANGUAGES = [
@@ -165,9 +157,6 @@ export default function ProfileBuilder() {
     fetchProfile();
   }, []);
 
-  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, STEPS.length - 1));
-  const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
-
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -195,21 +184,29 @@ export default function ProfileBuilder() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-20"><div className="animate-spin text-4xl">⏳</div></div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-32 space-y-4">
+        <div className="w-12 h-12 border-4 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+        <p className="text-gray-500 font-medium">Profiliniz yükleniyor...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <StepIndicator steps={STEPS} currentStep={currentStep} />
-
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-        {/* ========== ADIM 1: KİŞİSEL BİLGİLER ========== */}
-        {currentStep === 0 && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-3 mb-6">
-              <User className="w-6 h-6 text-blue-600" />
-              <h3 className="text-xl font-semibold">Kişisel Bilgiler</h3>
+    <div className="max-w-4xl mx-auto space-y-10 pb-20">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100">
+        
+        {/* ========== BÖLÜM 1: KİŞİSEL BİLGİLER ========== */}
+        <div className="p-8 space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <User className="w-5 h-5 text-blue-600" />
             </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Kişisel Bilgiler</h3>
+              <p className="text-sm text-gray-500">Profilinizde görünecek temel bilgileriniz.</p>
+            </div>
+          </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -299,16 +296,17 @@ export default function ProfileBuilder() {
                 />
               </div>
             </div>
-          </div>
-        )}
-
-        {/* ========== ADIM 2: DİL ÇİFTLERİ ========== */}
-        {currentStep === 1 && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-3 mb-6">
-              <Globe className="w-6 h-6 text-blue-600" />
-              <h3 className="text-xl font-semibold">Dil Çiftleri</h3>
+        {/* ========== BÖLÜM 2: DİL ÇİFTLERİ ========== */}
+        <div className="p-8 space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <Globe className="w-5 h-5 text-emerald-600" />
             </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Dil Çiftleri</h3>
+              <p className="text-sm text-gray-500">Çeviri yaptığınız ana ve yan dilleri belirtin.</p>
+            </div>
+          </div>
             <p className="text-sm text-gray-500 mb-4">
               Çeviri yaptığınız dil çiftlerini ekleyin.
             </p>
@@ -391,16 +389,17 @@ export default function ProfileBuilder() {
             >
               <Plus className="w-4 h-4" /> Dil çifti ekle
             </button>
-          </div>
-        )}
-
-        {/* ========== ADIM 3: UZMANLIK & EĞİTİM ========== */}
-        {currentStep === 2 && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <BookOpen className="w-6 h-6 text-blue-600" />
-              <h3 className="text-xl font-semibold">Uzmanlık & Eğitim</h3>
+        {/* ========== BÖLÜM 3: UZMANLIK & EĞİTİM ========== */}
+        <div className="p-8 space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-violet-600" />
             </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Uzmanlık & Eğitim</h3>
+              <p className="text-sm text-gray-500">Sektörel uzmanlıklarınızı ve akademik geçmişinizi ekleyin.</p>
+            </div>
+          </div>
 
             {/* Uzmanlık Alanları */}
             <div>
@@ -590,16 +589,17 @@ export default function ProfileBuilder() {
                 <Plus className="w-4 h-4" /> Eğitim ekle
               </button>
             </div>
-          </div>
-        )}
-
-        {/* ========== ADIM 4: SÖZLÜ ÇEVİRİ ========== */}
-        {currentStep === 3 && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-3 mb-6">
-              <Mic className="w-6 h-6 text-blue-600" />
-              <h3 className="text-xl font-semibold">Sözlü Çeviri Bilgileri</h3>
+        {/* ========== BÖLÜM 4: SÖZLÜ ÇEVİRİ ========== */}
+        <div className="p-8 space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+              <Mic className="w-5 h-5 text-amber-600" />
             </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Sözlü Çeviri (Opsiyonel)</h3>
+              <p className="text-sm text-gray-500">Konferans ve simultane çeviri yetkinlikleriniz.</p>
+            </div>
+          </div>
             <p className="text-sm text-gray-500 mb-4">
               Konferans ve sözlü çeviri hizmeti veriyorsanız bu bölümü doldurun. Vermiyorsanız atlayabilirsiniz.
             </p>
@@ -676,16 +676,17 @@ export default function ProfileBuilder() {
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {/* ========== ADIM 5: PORTFOLYO ========== */}
-        {currentStep === 4 && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Briefcase className="w-6 h-6 text-blue-600" />
-              <h3 className="text-xl font-semibold">Portfolyo & Terminoloji</h3>
+        {/* ========== BÖLÜM 5: PORTFOLYO & SÖZLÜK ========== */}
+        <div className="p-8 space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Briefcase className="w-5 h-5 text-indigo-600" />
             </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Portfolyo & Terminoloji</h3>
+              <p className="text-sm text-gray-500">Uzmanlığınızı kanıtlayacak örnekler ve terimler.</p>
+            </div>
+          </div>
 
             {/* Terminoloji Sözlüğü */}
             <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl space-y-4">
@@ -794,16 +795,17 @@ export default function ProfileBuilder() {
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
-          </div>
-        )}
-
-        {/* ========== ADIM 6: FİYATLANDIRMA ========== */}
-        {currentStep === 5 && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-3 mb-6">
-              <CreditCard className="w-6 h-6 text-blue-600" />
-              <h3 className="text-xl font-semibold">Fiyatlandırma</h3>
+        {/* ========== BÖLÜM 6: FİYATLANDIRMA ========== */}
+        <div className="p-8 space-y-6 border-b-0">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-rose-600" />
             </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Fiyatlandırma</h3>
+              <p className="text-sm text-gray-500">Hizmetleriniz için belirlediğiniz taban ücretler.</p>
+            </div>
+          </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Para Birimi</label>
@@ -868,41 +870,32 @@ export default function ProfileBuilder() {
                 Öğrenci iseniz başlangıç için daha uygun fiyatlar belirleyebilirsiniz.
               </p>
             </div>
-          </div>
-        )}
-
-        {/* ========== NAVİGASYON BUTONLARI ========== */}
-        <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              currentStep === 0
-                ? "text-gray-300 cursor-not-allowed"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            <ChevronLeft className="w-4 h-4" /> Geri
-          </button>
-
-          {currentStep < STEPS.length - 1 ? (
-            <button
-              onClick={nextStep}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all"
-            >
-              İleri <ChevronRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all disabled:opacity-50"
-            >
-              {isSubmitting ? <span className="animate-spin">⏳</span> : <Save className="w-4 h-4" />} 
-              {isSubmitting ? "Kaydediliyor..." : "Profili Oluştur"}
-            </button>
-          )}
         </div>
+      </div>
+
+      {/* ========== SABİT ALT BAR / KAYDET BUTONU ========== */}
+      <div className="sticky bottom-8 bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-gray-200 shadow-2xl flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-900">Değişiklikleri Kaydet</p>
+          <p className="text-xs text-gray-500">Tüm bilgileriniz güncellenecektir.</p>
+        </div>
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="flex items-center gap-2 px-8 py-3 bg-zinc-900 text-white rounded-xl font-semibold hover:bg-black transition-all shadow-lg disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Kaydediliyor...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              Profilimi Güncelle
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
