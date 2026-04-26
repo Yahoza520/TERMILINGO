@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2, User, Building2, GraduationCap } from "lucide-react";
 import Link from "next/link";
@@ -10,7 +10,14 @@ type UserType = "TRANSLATOR" | "EMPLOYER" | "STUDENT";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/marketplace");
+    }
+  }, [status, router]);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [userType, setUserType] = useState<UserType>("TRANSLATOR");

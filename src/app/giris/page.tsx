@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/marketplace");
+    }
+  }, [status, router]);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
