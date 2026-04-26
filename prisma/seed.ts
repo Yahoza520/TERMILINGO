@@ -40,6 +40,7 @@ async function main() {
           wordRate: 0.35,
           interpreterTypes: [],
           profileSlug: "ahmet-yilmaz-yazili",
+          isPublic: true,
         }
       }
     }
@@ -74,6 +75,7 @@ async function main() {
           dailyRate: 20000,
           hasInfoport: true,
           profileSlug: "mehmet-can-ozturk-sozlu",
+          isPublic: true,
         }
       }
     }
@@ -106,6 +108,7 @@ async function main() {
           catTools: ["Smartcat"],
           wordRate: 0.1,
           profileSlug: "elif-demir-ogrenci",
+          isPublic: true,
         }
       }
     }
@@ -138,6 +141,7 @@ async function main() {
           catTools: ["Memsource", "SDL Trados"],
           wordRate: 0.3,
           profileSlug: "zeynep-arslan-tip",
+          isPublic: true,
         }
       }
     }

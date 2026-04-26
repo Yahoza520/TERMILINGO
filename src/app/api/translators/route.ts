@@ -12,11 +12,14 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type");
 
     const whereClause: any = {
-      isPublic: true,
+      // isPublic: true,
       user: {
-        role: { in: ["TRANSLATOR", "STUDENT", "ENTERPRISE"] },
+        role: { in: ["TRANSLATOR", "STUDENT"] },
       },
     };
+
+    console.log("Marketplace whereClause:", JSON.stringify(whereClause, null, 2));
+
 
     if (city && city !== "Tümü") {
       whereClause.city = city;

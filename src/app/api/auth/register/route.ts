@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
                 create: {
                   tier: userRole === "STUDENT" ? "JUNIOR" : "INDIVIDUAL",
                   title: userRole === "STUDENT" ? "Ogrenci Tercuman" : "Tercuman",
+                  isPublic: true,
                 },
               },
             }),
