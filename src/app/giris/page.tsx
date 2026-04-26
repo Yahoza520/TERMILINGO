@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -41,7 +41,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleOAuthSignIn = async (provider: "google" | "github") => {
+  const handleOAuthSignIn = async (provider: "google") => {
     setIsLoading(true);
     await signIn(provider, { callbackUrl: "/marketplace" });
   };
@@ -57,13 +57,13 @@ export default function LoginPage() {
             </div>
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Tekrar Hoş Geldiniz</h1>
-          <p className="text-gray-500">TermiLingo'ya giriş yapın ve tercüman arayın</p>
+          <p className="text-gray-500">TermiLingo hesabınızla giriş yapın</p>
         </div>
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
           {/* OAuth Buttons */}
-          <div className="space-y-3 mb-6">
+          <div className="mb-6">
             <button
               onClick={() => handleOAuthSignIn("google")}
               disabled={isLoading}
@@ -89,21 +89,6 @@ export default function LoginPage() {
               </svg>
               Google ile Devam Et
             </button>
-
-            <button
-              onClick={() => handleOAuthSignIn("github")}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all font-medium text-gray-700 disabled:opacity-50"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"
-                />
-              </svg>
-              GitHub ile Devam Et
-            </button>
           </div>
 
           {/* Divider */}
@@ -116,7 +101,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
@@ -151,7 +135,7 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="••••••••"
+                  placeholder="Parolanızı girin"
                   required
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all text-gray-900"
                 />
@@ -170,9 +154,6 @@ export default function LoginPage() {
                 <input type="checkbox" className="rounded border-gray-300 text-zinc-900 focus:ring-zinc-900" />
                 <span className="text-gray-600">Beni hatırla</span>
               </label>
-              <a href="#" className="text-zinc-900 font-medium hover:underline">
-                Şifremi unuttum
-              </a>
             </div>
 
             <button
@@ -197,7 +178,7 @@ export default function LoginPage() {
         {/* Back to home */}
         <div className="text-center mt-6">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Ana sayfaya dön
+            &#8592; Ana sayfaya don
           </Link>
         </div>
       </div>

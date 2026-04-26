@@ -1,46 +1,67 @@
 #!/bin/bash
-# TermiLingo - Hostinger VPS Deploy Script
-# Kullanım: bash deploy.sh
+# TermiLingo VPS Deploy Script
+# Mac terminalinden çalıştır: bash deploy.sh
 
-set -e
+VPS="root@187.77.95.109"
+LOCAL="/Users/yao_macbookpro/Documents/COWORK/TERMILINGO/"
+REMOTE="/var/www/termilingo/"
 
-echo "🚀 TermiLingo Deploy Başlıyor..."
+echo "=== TermiLingo Deploy ==="
+echo ""
 
-# Renk kodları
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+echo "[1/4] Dosyalar VPS'ye yukleniyor..."
+rsync -avz --delete \
+  --exclude='node_modules' \
+  --exclude='.next' \
+  --exclude='.git' \
+  --exclude='.DS_Store' \
+  --exclude='.env' \
+  "$LOCAL" "$VPS:$REMOTE"
 
-# Adım 1: Bağımlılıkları kur
-echo -e "${GREEN}📦 Bağımlılıklar kuruluyor...${NC}"
-npm install --production=false
+echo ""
+echo "[2/4] Build ve restart..."
+ssh "$VPS" << 'ENDSSH'
+cd /var/www/termilingo
 
-# Adım 2: Prisma Client oluştur
-echo -e "${GREEN}🔧 Prisma Client oluşturuluyor...${NC}"
-npx prisma generate
+echo "-- npm install --"
+npm install --production=false 2>&1 | tail -3
 
-# Adım 3: Veritabanını senkronize et
-echo -e "${GREEN}🗄️ Veritabanı senkronize ediliyor...${NC}"
-npx prisma db push --accept-data-loss
+echo "-- prisma generate --"
+npx prisma generate 2>&1 | tail -3
 
-# Adım 4: Build
-echo -e "${GREEN}🔨 Production build alınıyor...${NC}"
-npm run build
+echo "-- prisma db push --"
+npx prisma db push --accept-data-loss 2>&1 | tail -5
 
-# Adım 5: PM2 ile başlat/yeniden başlat
-echo -e "${GREEN}🚀 PM2 ile başlatılıyor...${NC}"
-if pm2 describe termilingo > /dev/null 2>&1; then
-    pm2 restart termilingo
-    echo -e "${GREEN}✅ TermiLingo yeniden başlatıldı!${NC}"
+echo "-- prisma seed --"
+npx prisma db seed 2>&1 | tail -5
+
+echo "-- npm run build --"
+npm run build 2>&1 | tail -10
+
+echo "-- pm2 restart --"
+pm2 delete termilingo 2>/dev/null
+fuser -k 3000/tcp 2>/dev/null
+sleep 1
+pm2 start "npx next start -p 3000" --name termilingo
+pm2 save
+
+echo ""
+echo "-- pm2 status --"
+pm2 status
+
+echo ""
+echo "-- test --"
+sleep 3
+HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000)
+echo "HTTP Status: $HTTP_CODE"
+
+if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+  echo "BASARILI! http://187.77.95.109:3000"
 else
-    pm2 start npm --name "termilingo" -- start
-    pm2 save
-    echo -e "${GREEN}✅ TermiLingo ilk kez başlatıldı!${NC}"
+  echo "HATA! pm2 logs:"
+  pm2 logs termilingo --lines 10 --nostream
 fi
+ENDSSH
 
 echo ""
-echo -e "${GREEN}🎉 Deploy tamamlandı!${NC}"
-echo -e "  Durum: pm2 status"
-echo -e "  Loglar: pm2 logs termilingo"
-echo ""
+echo "=== Deploy tamamlandi ==="

@@ -66,6 +66,38 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Referans Kurumlar / Logolar */}
+      <section className="py-10 border-t border-b border-gray-100 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <p className="text-center text-sm font-medium text-gray-400 mb-6 uppercase tracking-wider">
+            Kurumsal Müşterilerimiz ve Referanslarımız
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+            {/* Ornek Logolar (Gercek projede img ile degistirilir) */}
+            <div className="text-xl font-bold font-serif text-gray-800 flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-md"></div>
+              TechNova
+            </div>
+            <div className="text-xl font-black tracking-tighter text-gray-800 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full border-4 border-rose-600"></div>
+              GlobalMed
+            </div>
+            <div className="text-xl font-semibold italic text-gray-800 flex items-center gap-2">
+              <div className="w-8 h-8 bg-emerald-500 rotate-45"></div>
+              EcoEnergy
+            </div>
+            <div className="text-xl font-bold tracking-widest text-gray-800 flex items-center gap-2">
+              <div className="w-8 h-2 bg-indigo-600"></div>
+              LEGAL&CO
+            </div>
+            <div className="text-xl font-medium text-gray-800 flex items-center gap-2">
+              <div className="w-6 h-6 border-2 border-amber-500 rounded-sm"></div>
+              BuildCorp
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Nasıl Çalışır */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">

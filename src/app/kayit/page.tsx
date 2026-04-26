@@ -57,24 +57,17 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Kayıt olurken bir hata oluştu.");
+        throw new Error(data.error || "Kayit olurken bir hata olustu.");
       }
 
-      // Kayıt başarılıysa giriş yap
-      const signInResult = await signIn("credentials", {
-        redirect: false,
+      // Dogrulama sayfasina yonlendir
+      const params = new URLSearchParams({
         email: form.email,
-        password: form.password,
+        p: form.password,
       });
-
-      if (signInResult?.error) {
-        throw new Error("Kayıt başarılı ancak giriş yapılamadı.");
-      }
-
-      router.push(userType === "EMPLOYER" ? "/marketplace" : "/profile/create");
-      router.refresh();
+      router.push(`/dogrula?${params.toString()}`);
     } catch (err: any) {
-      setError(err.message || "Kayıt sırasında bir hata oluştu.");
+      setError(err.message || "Kayit sirasinda bir hata olustu.");
     } finally {
       setIsLoading(false);
     }

@@ -1,22 +1,16 @@
 // TermiLingo - Authentication Configuration
-// NextAuth.js ile kullanıcı kimlik doğrulama
+// NextAuth.js ile kullanıcı kimlik doğrulama (sadece Email/Şifre)
 
 import { NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
 import { prisma } from "@/lib/prisma";
 import crypto from "node:crypto";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    // GitHub OAuth (tercihen geliştiriciler için)
-    GitHub({
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
-    }),
     // Google OAuth
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -82,7 +76,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google" || account?.provider === "github") {
+      if (account?.provider === "google") {
         // OAuth ile giriş - kullanıcı var mı kontrol et
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
@@ -96,6 +90,7 @@ export const authOptions: NextAuthOptions = {
               name: user.name || user.email!.split("@")[0],
               role: "TRANSLATOR",
               image: user.image || (profile as any)?.picture || (profile as any)?.image,
+              emailVerified: new Date(), // Google login trusted
             },
           });
         }
@@ -108,6 +103,6 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 gün
   },
   pages: {
-    signIn: "/giris", // Custom login page
+    signIn: "/giris",
   },
 };

@@ -9,41 +9,47 @@ export async function POST(req: NextRequest) {
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Lütfen tüm gerekli alanları doldurun." },
+        { error: "Ad Soyad, email ve parola zorunludur." },
         { status: 400 }
       );
     }
 
-    // Email format kontrolü
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
-        { error: "Geçerli bir email adresi girin." },
+        { error: "Gecerli bir email adresi girin." },
         { status: 400 }
       );
     }
 
-    // Kullanıcı var mı kontrol et
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Parola en az 6 karakter olmalidir." },
+        { status: 400 }
+      );
+    }
+
+    // Kullanici var mi kontrol et
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "Bu email adresi zaten kullanımda." },
+        { error: "Bu email adresi zaten kullanim da." },
         { status: 409 }
       );
     }
 
-    // Şifreyi hash'le
+    // Sifreyi hashle
     const salt = crypto.randomBytes(16).toString("hex");
     const derivedKey = crypto.scryptSync(password, salt, 64).toString("hex");
     const hashedPassword = `${salt}:${derivedKey}`;
 
-    // 6 haneli doğrulama kodu oluştur
+    // 6 haneli dogrulama kodu olustur
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationExpiry = new Date(Date.now() + 30 * 60 * 1000); // 30 dakika
 
-    // Kullanıcı oluştur
+    // Kullanici olustur
     const validRoles = ["TRANSLATOR", "EMPLOYER", "STUDENT"];
     const userRole = validRoles.includes(role) ? role : "TRANSLATOR";
 
@@ -54,15 +60,17 @@ export async function POST(req: NextRequest) {
         passwordHash: hashedPassword,
         role: userRole,
         isStudent: userRole === "STUDENT",
-        // Doğrulama kodu metadata'da sakla (şimdilik)
+        verificationCode,
+        verificationExpiry,
+        // emailVerified null kalir - dogrulama bekliyor
       },
     });
 
-    // Email doğrulama kodu gönder
+    // Email dogrulama kodu gonder
     try {
       await sendEmail({
         to: email,
-        subject: "TermiLingo — Email Doğrulama Kodu",
+        subject: "TermiLingo - Email Dogrulama Kodu",
         html: `
 <!DOCTYPE html>
 <html lang="tr">
@@ -81,29 +89,29 @@ export async function POST(req: NextRequest) {
       <table width="100%" style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
         <tr>
           <td style="background:linear-gradient(135deg,#18181b,#27272a);padding:32px;text-align:center;">
-            <h1 style="color:white;margin:0;font-size:22px;">Email Doğrulama 🔐</h1>
+            <h1 style="color:white;margin:0;font-size:22px;">Email Dogrulama</h1>
           </td>
         </tr>
         <tr>
           <td style="padding:32px;text-align:center;">
             <p style="color:#374151;font-size:15px;margin:0 0 24px;">
-              Merhaba <strong>${name}</strong>, TermiLingo'ya hoş geldiniz!
+              Merhaba <strong>${name}</strong>, TermiLingo'ya hos geldiniz!
             </p>
             <p style="color:#64748b;font-size:14px;margin:0 0 24px;">
-              Hesabınızı doğrulamak için aşağıdaki kodu kullanın:
+              Hesabinizi dogrulamak icin asagidaki kodu kullanin:
             </p>
             <div style="background:#f0f9ff;border:2px solid #bae6fd;border-radius:12px;padding:20px;margin:0 auto;max-width:200px;">
               <p style="margin:0;font-size:36px;font-weight:700;color:#0369a1;letter-spacing:8px;">${verificationCode}</p>
             </div>
             <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;">
-              Bu kod 30 dakika geçerlidir.
+              Bu kod 30 dakika gecerlidir.
             </p>
           </td>
         </tr>
       </table>
       <table width="100%" style="margin-top:24px;">
         <tr><td style="text-align:center;padding:16px;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">TermiLingo — Türkiye'nin Profesyonel Tercüman Platformu</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">TermiLingo - Turkiye'nin Profesyonel Tercuman Platformu</p>
         </td></tr>
       </table>
     </td></tr>
@@ -112,16 +120,15 @@ export async function POST(req: NextRequest) {
 </html>`.trim(),
       });
     } catch (emailError) {
-      console.error("Doğrulama e-postası gönderilemedi:", emailError);
+      console.error("Dogrulama e-postasi gonderilemedi:", emailError);
     }
 
-    // Şifre hash'i dönme
-    const { passwordHash, ...userWithoutPassword } = user;
+    const { passwordHash, verificationCode: vc, ...userSafe } = user;
 
     return NextResponse.json(
       {
-        user: userWithoutPassword,
-        message: "Hesabınız oluşturuldu! Email adresinize doğrulama kodu gönderildi.",
+        user: userSafe,
+        message: "Hesabiniz olusturuldu! Email adresinize dogrulama kodu gonderildi.",
         verificationRequired: true,
       },
       { status: 201 }
@@ -129,16 +136,15 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Registration error:", error);
 
-    // Prisma hata mesajlarını düzgün göster
     if (error?.code === "P2002") {
       return NextResponse.json(
-        { error: "Bu email adresi zaten kullanımda." },
+        { error: "Bu email adresi zaten kullanida." },
         { status: 409 }
       );
     }
 
     return NextResponse.json(
-      { error: "Kayıt işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin." },
+      { error: "Kayit islemi sirasinda bir hata olustu. Lutfen tekrar deneyin." },
       { status: 500 }
     );
   }

@@ -44,6 +44,10 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Email dogrulama
+  verificationCode   String?
+  verificationExpiry DateTime?
+
   // Iliskiler
   translatorProfile TranslatorProfile?
   employerProfile   EmployerProfile?

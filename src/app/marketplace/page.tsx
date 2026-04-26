@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import TranslatorCard from "@/components/marketplace/translator-card";
 import QuickView from "@/components/marketplace/quick-view";
 import {
@@ -11,229 +11,56 @@ import {
   PenTool,
   Mic,
   GraduationCap,
+  Loader2
 } from "lucide-react";
 
 // ===========================================
 // MARKETPLACE SAYFASI
-// İşverenlerin tercüman aradığı ana sayfa.
-// Yazılı / Sözlü / Öğrenci sekmeleri,
-// Konum filtreleme, terminoloji ön izleme.
+// Isverenlerin tercuman aradigi ana sayfa.
+// Yazili / Sozlu / Ogrenci sekmeleri,
+// Konum filtreleme, terminoloji on izleme.
 // ===========================================
-
-// Demo verileri (gerçek uygulamada API'den gelecek)
-const DEMO_TRANSLATORS = [
-  {
-    id: "1",
-    name: "Ahmet Yılmaz",
-    title: "Yeminli Tercüman & Konferans Tercümanı",
-    city: "İstanbul",
-    badge: "CERTIFIED_PRO",
-    tier: "PRO",
-    experienceYears: 15,
-    rating: 4.9,
-    reviewCount: 47,
-    languagePairs: [
-      { source: "Türkçe", target: "İngilizce", level: "Anadil" },
-      { source: "Türkçe", target: "Almanca", level: "İleri" },
-      { source: "İngilizce", target: "Türkçe", level: "Anadil" },
-    ],
-    specializations: ["Hukuk", "Maden Hukuku", "Teknik", "Yapay Zeka"],
-    catTools: ["SDL Trados", "MemoQ", "Smartcat"],
-    interpreterTypes: ["SIMULTANEOUS", "CONSECUTIVE"],
-    hasInfoport: true,
-    education: [
-      { school: "Boğaziçi Üniversitesi", degree: "Lisans", field: "Mütercim-Tercümanlık", year: 2010 },
-    ],
-    certifications: [
-      { name: "YDS", score: "95", year: 2020 },
-      { name: "TOEFL", score: "115", year: 2019 },
-    ],
-    glossary: {
-      title: "Maden Hukuku Terminolojisi",
-      field: "Maden Hukuku",
-      terms: [
-        { sourceTerm: "Maden ruhsatı", targetTerm: "Mining license" },
-        { sourceTerm: "İşletme izni", targetTerm: "Operating permit" },
-        { sourceTerm: "Cevher", targetTerm: "Ore" },
-        { sourceTerm: "Sondaj", targetTerm: "Drilling" },
-        { sourceTerm: "Çevre etki değerlendirmesi", targetTerm: "Environmental impact assessment" },
-      ],
-    },
-    sample: {
-      title: "Hukuk Metni - Maden Ruhsatı Başvurusu",
-      field: "Maden Hukuku",
-      sourceText:
-        "Maden ruhsatı başvurusu, ilgili mevzuat çerçevesinde Maden ve Petrol İşleri Genel Müdürlüğü'ne yapılır. Başvuru sahibi, arama izni almak için gerekli teknik ve mali yeterliliği belgelemelidir.",
-      targetText:
-        "Mining license applications are submitted to the General Directorate of Mining and Petroleum Affairs within the framework of the relevant legislation. The applicant must document the required technical and financial competency to obtain an exploration permit.",
-    },
-    hourlyRate: 1500,
-    dailyRate: 10000,
-    wordRate: 0.35,
-    currency: "TRY",
-    profileSlug: "ahmet-yilmaz",
-  },
-  {
-    id: "2",
-    name: "Zeynep Arslan",
-    title: "Tıp & İlaç Sektörü Çevirmenʼi",
-    city: "Ankara",
-    badge: "CERTIFIED_PRO",
-    tier: "PRO",
-    experienceYears: 10,
-    rating: 4.8,
-    reviewCount: 32,
-    languagePairs: [
-      { source: "Türkçe", target: "İngilizce", level: "İleri" },
-      { source: "Türkçe", target: "Fransızca", level: "İleri" },
-    ],
-    specializations: ["Tıp/Sağlık", "Eczacılık", "Biyoteknoloji"],
-    catTools: ["SDL Trados", "Memsource"],
-    interpreterTypes: [],
-    hasInfoport: false,
-    education: [
-      { school: "Hacettepe Üniversitesi", degree: "Yüksek Lisans", field: "Çeviribilim", year: 2014 },
-    ],
-    certifications: [{ name: "DELF C1", score: "Geçti", year: 2018 }],
-    glossary: {
-      title: "Tıbbi Terminoloji",
-      field: "Tıp/Sağlık",
-      terms: [
-        { sourceTerm: "Klinik araştırma", targetTerm: "Clinical trial" },
-        { sourceTerm: "İlaç prospektüsü", targetTerm: "Drug leaflet" },
-        { sourceTerm: "Yan etki", targetTerm: "Side effect / Adverse event" },
-      ],
-    },
-    sample: undefined,
-    hourlyRate: undefined,
-    dailyRate: undefined,
-    wordRate: 0.3,
-    currency: "TRY",
-    profileSlug: "zeynep-arslan",
-  },
-  {
-    id: "3",
-    name: "Mehmet Can Öztürk",
-    title: "Simültane Konferans Tercümanı",
-    city: "Ankara",
-    badge: "ENTERPRISE",
-    tier: "ENTERPRISE",
-    experienceYears: 20,
-    rating: 5.0,
-    reviewCount: 85,
-    languagePairs: [
-      { source: "Türkçe", target: "İngilizce", level: "Anadil" },
-      { source: "Türkçe", target: "Arapça", level: "İleri" },
-    ],
-    specializations: ["Diplomatik/Resmi", "Hukuk", "Enerji"],
-    catTools: [],
-    interpreterTypes: ["SIMULTANEOUS", "CONSECUTIVE", "WHISPERED"],
-    hasInfoport: true,
-    education: [
-      { school: "Ankara Üniversitesi", degree: "Doktora", field: "Çeviribilim", year: 2008 },
-    ],
-    certifications: [
-      { name: "AIIC Üyeliği", score: "Aktif", year: 2012 },
-    ],
-    glossary: undefined,
-    sample: undefined,
-    hourlyRate: 3000,
-    dailyRate: 20000,
-    wordRate: undefined,
-    currency: "TRY",
-    profileSlug: "mehmet-can-ozturk",
-  },
-  {
-    id: "4",
-    name: "Elif Demir",
-    title: "Mütercim-Tercümanlık Öğrencisi",
-    city: "Ankara",
-    badge: "VERIFIED_STUDENT",
-    tier: "JUNIOR",
-    experienceYears: 0,
-    rating: 4.5,
-    reviewCount: 3,
-    languagePairs: [
-      { source: "Türkçe", target: "İngilizce", level: "İleri" },
-      { source: "İngilizce", target: "Türkçe", level: "İleri" },
-    ],
-    specializations: ["Edebiyat", "Genel"],
-    catTools: ["Smartcat"],
-    interpreterTypes: [],
-    hasInfoport: false,
-    education: [
-      { school: "Hacettepe Üniversitesi", degree: "Lisans (devam)", field: "Mütercim-Tercümanlık", year: 2027 },
-    ],
-    certifications: [],
-    glossary: undefined,
-    sample: undefined,
-    hourlyRate: undefined,
-    dailyRate: undefined,
-    wordRate: 0.1,
-    currency: "TRY",
-    profileSlug: "elif-demir",
-  },
-  {
-    id: "5",
-    name: "Ali Rıza Korkut",
-    title: "Teknik Çeviri Uzmanı",
-    city: "İzmir",
-    badge: "CERTIFIED_PRO",
-    tier: "PRO",
-    experienceYears: 8,
-    rating: 4.7,
-    reviewCount: 21,
-    languagePairs: [
-      { source: "Türkçe", target: "Almanca", level: "Anadil" },
-      { source: "Almanca", target: "Türkçe", level: "Anadil" },
-    ],
-    specializations: ["Teknik", "Otomotiv", "İnşaat", "Enerji"],
-    catTools: ["SDL Trados", "Wordfast", "MemoQ"],
-    interpreterTypes: ["CONSECUTIVE"],
-    hasInfoport: false,
-    education: [
-      { school: "Ege Üniversitesi", degree: "Lisans", field: "Alman Dili ve Edebiyatı", year: 2016 },
-    ],
-    certifications: [{ name: "TestDaF", score: "TDN 5", year: 2017 }],
-    glossary: {
-      title: "Otomotiv Terminolojisi",
-      field: "Otomotiv",
-      terms: [
-        { sourceTerm: "Şanzıman", targetTerm: "Getriebe" },
-        { sourceTerm: "Yakıt enjeksiyonu", targetTerm: "Kraftstoffeinspritzung" },
-        { sourceTerm: "Fren sistemi", targetTerm: "Bremssystem" },
-      ],
-    },
-    sample: undefined,
-    hourlyRate: 1000,
-    dailyRate: 7000,
-    wordRate: 0.28,
-    currency: "TRY",
-    profileSlug: "ali-riza-korkut",
-  },
-];
 
 type TabType = "all" | "written" | "interpreter" | "student";
 
 const CITIES = ["Tümü", "İstanbul", "Ankara", "İzmir", "Bursa", "Antalya"];
 
 export default function MarketplacePage() {
+  const [translators, setTranslators] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("Tümü");
-  const [quickViewTranslator, setQuickViewTranslator] = useState<
-    (typeof DEMO_TRANSLATORS)[0] | null
-  >(null);
+  const [quickViewTranslator, setQuickViewTranslator] = useState<any | null>(null);
 
-  // Filtreleme mantığı
+  // Verileri API'den cek
+  useEffect(() => {
+    async function fetchTranslators() {
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/translators");
+        const data = await res.json();
+        if (res.ok) {
+          setTranslators(data.translators || []);
+        }
+      } catch (error) {
+        console.error("Tercumanlar yuklenemedi:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchTranslators();
+  }, []);
+
+  // Filtreleme mantigi
   const filteredTranslators = useMemo(() => {
-    return DEMO_TRANSLATORS.filter((t) => {
+    return translators.filter((t) => {
       // Sekme filtresi
-      if (activeTab === "written" && t.interpreterTypes.length > 0 && !t.wordRate) return false;
-      if (activeTab === "interpreter" && t.interpreterTypes.length === 0) return false;
+      if (activeTab === "written" && t.interpreterTypes?.length > 0 && !t.wordRate) return false;
+      if (activeTab === "interpreter" && (!t.interpreterTypes || t.interpreterTypes.length === 0)) return false;
       if (activeTab === "student" && t.tier !== "JUNIOR") return false;
 
-      // Şehir filtresi
+      // Sehir filtresi
       if (selectedCity !== "Tümü" && t.city !== selectedCity) return false;
 
       // Arama filtresi
@@ -243,8 +70,8 @@ export default function MarketplacePage() {
           t.name,
           t.title,
           t.city,
-          ...t.specializations,
-          ...t.languagePairs.map((p) => `${p.source} ${p.target}`),
+          ...(t.specializations || []),
+          ...(t.languagePairs || []).map((p: any) => `${p.source} ${p.target}`),
         ]
           .join(" ")
           .toLowerCase();
@@ -253,11 +80,10 @@ export default function MarketplacePage() {
 
       return true;
     });
-  }, [activeTab, searchQuery, selectedCity]);
+  }, [translators, activeTab, searchQuery, selectedCity]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Başlık */}
@@ -296,27 +122,27 @@ export default function MarketplacePage() {
           </div>
         </div>
 
-        {/* Sekmeler: Yazılı / Sözlü / Öğrenci */}
-        <div className="flex gap-2 mb-6">
+        {/* Sekmeler: Yazili / Sozlu / Ogrenci */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {[
-            { key: "all" as const, label: "Tümü", icon: Filter, count: DEMO_TRANSLATORS.length },
+            { key: "all" as const, label: "Tumu", icon: Filter, count: translators.length },
             {
               key: "written" as const,
-              label: "Yazılı Çeviri",
+              label: "Yazili Ceviri",
               icon: PenTool,
-              count: DEMO_TRANSLATORS.filter((t) => t.wordRate).length,
+              count: translators.filter((t) => t.wordRate).length,
             },
             {
               key: "interpreter" as const,
-              label: "Sözlü Çeviri",
+              label: "Sozlu Ceviri",
               icon: Mic,
-              count: DEMO_TRANSLATORS.filter((t) => t.interpreterTypes.length > 0).length,
+              count: translators.filter((t) => t.interpreterTypes?.length > 0).length,
             },
             {
               key: "student" as const,
-              label: "Öğrenci",
+              label: "Ogrenci",
               icon: GraduationCap,
-              count: DEMO_TRANSLATORS.filter((t) => t.tier === "JUNIOR").length,
+              count: translators.filter((t) => t.tier === "JUNIOR").length,
             },
           ].map((tab) => (
             <button
@@ -343,30 +169,39 @@ export default function MarketplacePage() {
           ))}
         </div>
 
-        {/* Sonuç Sayısı */}
-        <p className="text-sm text-gray-500 mb-4">
-          {filteredTranslators.length} tercüman bulundu
-        </p>
-
-        {/* Kart Listesi */}
-        {filteredTranslators.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTranslators.map((translator) => (
-              <TranslatorCard
-                key={translator.id}
-                translator={translator}
-                onQuickView={() => setQuickViewTranslator(translator)}
-              />
-            ))}
+        {/* Sonuc Sayisi & Loader */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-zinc-900" />
+            <span className="ml-3 text-gray-600">Tercumanlar yukleniyor...</span>
           </div>
         ) : (
-          <div className="text-center py-16">
-            <SlidersHorizontal className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-1">Sonuç bulunamadı</h3>
-            <p className="text-sm text-gray-400">
-              Filtrelerinizi değiştirerek tekrar deneyin.
+          <>
+            <p className="text-sm text-gray-500 mb-4">
+              {filteredTranslators.length} tercuman bulundu
             </p>
-          </div>
+
+            {/* Kart Listesi */}
+            {filteredTranslators.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredTranslators.map((translator) => (
+                  <TranslatorCard
+                    key={translator.id}
+                    translator={translator}
+                    onQuickView={() => setQuickViewTranslator(translator)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <SlidersHorizontal className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-1">Sonuc bulunamadi</h3>
+                <p className="text-sm text-gray-400">
+                  Filtrelerinizi degistirerek tekrar deneyin.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </main>
 
