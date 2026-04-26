@@ -12,6 +12,16 @@ import { sendRequestNotificationEmail } from "@/lib/email";
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const userRole = (session?.user as any)?.role;
+
+    // Sadece EMPLOYER veya ADMIN talep oluşturabilir (veya giriş yapmamış misafir)
+    if (userRole === "TRANSLATOR" || userRole === "STUDENT") {
+      return NextResponse.json(
+        { error: "Tercümanlar veya öğrenciler çeviri talebi oluşturamaz." },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const {
       clientName, clientEmail, clientPhone, title, description, type,

@@ -143,13 +143,17 @@ export default function Header() {
                 Panelim
               </Link>
             )}
-            <Link
-              href="/talep"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Çeviri Talebi
-            </Link>
+            
+            {/* Sadece Müşteriler talep oluşturabilir */}
+            {(userRole === "EMPLOYER" || !isLoggedIn) && (
+              <Link
+                href="/talep"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Çeviri Talebi
+              </Link>
+            )}
           </nav>
 
           {/* Right Actions */}
@@ -285,43 +289,22 @@ export default function Header() {
                           <FileText className="w-4 h-4 text-gray-500" />
                           Panelim
                         </Link>
-
-                        {/* Tercüman/Öğrenci: Müşteri paneline de erişim */}
-                        {(userRole === "TRANSLATOR" || userRole === "STUDENT") && (
-                          <Link
-                            href="/dashboard/musteri"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            <Building2 className="w-4 h-4 text-gray-400" />
-                            Müşteri Paneli
-                          </Link>
-                        )}
-
-                        {/* İşveren: Tercüman paneline de erişim */}
-                        {userRole === "EMPLOYER" && (
-                          <Link
-                            href="/dashboard/tercuman"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            <Send className="w-4 h-4 text-gray-400" />
-                            Tercüman Paneli
-                          </Link>
-                        )}
                       </div>
 
                       <div className="border-t border-gray-100 my-1" />
 
                       <div className="py-1">
-                        <Link
-                          href="/profile/create"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                          <Settings className="w-4 h-4 text-gray-400" />
-                          Profilimi Düzenle
-                        </Link>
+                        {/* Sadece Tercümanlar profilini düzenleyebilir */}
+                        {(userRole === "TRANSLATOR" || userRole === "STUDENT") && (
+                          <Link
+                            href="/profile/create"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <Settings className="w-4 h-4 text-gray-400" />
+                            Profilimi Düzenle
+                          </Link>
+                        )}
                         <Link
                           href="/fiyatlandirma"
                           onClick={() => setUserMenuOpen(false)}
@@ -415,9 +398,12 @@ export default function Header() {
               <Link href="/fiyatlandirma" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg">
                 Fiyatlandırma
               </Link>
-              <Link href="/talep" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2.5 text-blue-600 font-medium hover:bg-blue-50 rounded-lg">
-                + Çeviri Talebi Oluştur
-              </Link>
+              
+              {(userRole === "EMPLOYER" || !isLoggedIn) && (
+                <Link href="/talep" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2.5 text-blue-600 font-medium hover:bg-blue-50 rounded-lg">
+                  + Çeviri Talebi Oluştur
+                </Link>
+              )}
 
               {isLoggedIn ? (
                 <>
@@ -425,9 +411,11 @@ export default function Header() {
                   <Link href={getDashboardLink()} onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2.5 text-gray-700 font-medium hover:bg-gray-50 rounded-lg">
                     📊 Panelim
                   </Link>
-                  <Link href="/profile/create" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg">
-                    ⚙️ Profilimi Düzenle
-                  </Link>
+                  {(userRole === "TRANSLATOR" || userRole === "STUDENT") && (
+                    <Link href="/profile/create" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg">
+                      ⚙️ Profilimi Düzenle
+                    </Link>
+                  )}
                   {userRole === "ADMIN" && (
                     <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-2.5 text-red-600 font-medium hover:bg-red-50 rounded-lg">
                       🛡️ Admin Panel
