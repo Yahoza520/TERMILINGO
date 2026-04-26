@@ -14,10 +14,10 @@ async function main() {
 
   // Example 1: Yazili Cevirmen (PRO)
   const user1 = await prisma.user.upsert({
-    where: { email: "ahmet.yazili@termilingo.com" },
+    where: { email: "ahmet.yazili@example.com" },
     update: {},
     create: {
-      email: "ahmet.yazili@termilingo.com",
+      email: "ahmet.yazili@example.com",
       name: "Ahmet Yilmaz",
       passwordHash: hashPassword("123456"),
       role: UserRole.TRANSLATOR,
@@ -47,10 +47,10 @@ async function main() {
 
   // Example 2: Sozlu Cevirmen (ENTERPRISE)
   const user2 = await prisma.user.upsert({
-    where: { email: "mehmet.sozlu@termilingo.com" },
+    where: { email: "mehmet.sozlu@example.com" },
     update: {},
     create: {
-      email: "mehmet.sozlu@termilingo.com",
+      email: "mehmet.sozlu@example.com",
       name: "Mehmet Can Ozturk",
       passwordHash: hashPassword("123456"),
       role: UserRole.TRANSLATOR,
@@ -81,10 +81,10 @@ async function main() {
 
   // Example 3: Ogrenci / Junior
   const user3 = await prisma.user.upsert({
-    where: { email: "elif.ogrenci@termilingo.com" },
+    where: { email: "elif.ogrenci@example.com" },
     update: {},
     create: {
-      email: "elif.ogrenci@termilingo.com",
+      email: "elif.ogrenci@example.com",
       name: "Elif Demir",
       passwordHash: hashPassword("123456"),
       role: UserRole.STUDENT,
@@ -113,10 +113,10 @@ async function main() {
 
   // Example 4: Tip / Ilac Sektoru (PRO)
   const user4 = await prisma.user.upsert({
-    where: { email: "zeynep.tip@termilingo.com" },
+    where: { email: "zeynep.tip@example.com" },
     update: {},
     create: {
-      email: "zeynep.tip@termilingo.com",
+      email: "zeynep.tip@example.com",
       name: "Zeynep Arslan",
       passwordHash: hashPassword("123456"),
       role: UserRole.TRANSLATOR,

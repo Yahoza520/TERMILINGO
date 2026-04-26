@@ -176,7 +176,7 @@ export async function sendProposalEmail({
               <table width="100%" style="margin-bottom:16px;">
                 <tr>
                   <td style="text-align:center;">
-                    <a href="${process.env.NEXTAUTH_URL || "http://localhost:3000"}/taleplerim"
+                    <a href="${process.env.NEXTAUTH_URL || "http://localhost:3000"}/dashboard/musteri/taleplerim"
                       style="display:inline-block;padding:14px 32px;background:#18181b;color:white;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;">
                       Teklifi İncele →
                     </a>
