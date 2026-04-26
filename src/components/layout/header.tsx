@@ -137,6 +137,12 @@ export default function Header() {
             <Link href="/fiyatlandirma" className="text-gray-600 hover:text-gray-900 font-medium transition-colors text-sm">
               Fiyatlandırma
             </Link>
+            {isLoggedIn && (
+              <Link href={getDashboardLink()} className="font-bold text-blue-600 hover:text-blue-800 transition-colors text-sm flex items-center gap-1">
+                <FileText className="w-4 h-4" />
+                Panelim
+              </Link>
+            )}
             <Link
               href="/talep"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all"
