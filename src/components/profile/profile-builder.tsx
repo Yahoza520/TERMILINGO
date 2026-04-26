@@ -76,6 +76,7 @@ interface GlossaryTerm {
 
 export default function ProfileBuilder() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
   const [form, setForm] = useState({
@@ -123,13 +124,30 @@ export default function ProfileBuilder() {
   const nextStep = () => setCurrentStep((s) => Math.min(s + 1, STEPS.length - 1));
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
-  const handleSubmit = () => {
-    // Burada API'ye gönderim yapılacak
-    console.log("Profil verisi:", form);
-    alert("Profiliniz başarıyla oluşturuldu! Giriş sayfasına yönlendiriliyorsunuz... 🎉");
-    setTimeout(() => {
-      window.location.href = "/giris";
-    }, 1500);
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        throw new Error("Profil kaydedilirken bir hata oluştu.");
+      }
+
+      alert("Profiliniz başarıyla kaydedildi! Panele yönlendiriliyorsunuz... 🎉");
+      setTimeout(() => {
+        window.location.href = "/dashboard/tercuman";
+      }, 1500);
+    } catch (err) {
+      alert("Hata: " + (err as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -829,9 +847,11 @@ export default function ProfileBuilder() {
           ) : (
             <button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all"
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all disabled:opacity-50"
             >
-              <Save className="w-4 h-4" /> Profili Oluştur
+              {isSubmitting ? <span className="animate-spin">⏳</span> : <Save className="w-4 h-4" />} 
+              {isSubmitting ? "Kaydediliyor..." : "Profili Oluştur"}
             </button>
           )}
         </div>
