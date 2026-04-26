@@ -6,7 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2, Mail, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
-export default function VerifyPage() {
+import { Suspense } from "react";
+
+function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -33,12 +35,12 @@ export default function VerifyPage() {
     setCode(newCode);
     setError("");
 
-    // Sonraki input'a geç
+    // Sonraki input'a gec
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // 6 hane dolunca otomatik doğrula
+    // 6 hane dolunca otomatik dogrula
     if (index === 5 && value) {
       const fullCode = newCode.join("");
       if (fullCode.length === 6) {
@@ -234,5 +236,13 @@ export default function VerifyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-zinc-900" /></div>}>
+      <VerifyContent />
+    </Suspense>
   );
 }
