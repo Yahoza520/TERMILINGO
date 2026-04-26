@@ -63,6 +63,16 @@ export async function POST(req: NextRequest) {
         verificationCode,
         verificationExpiry,
         // emailVerified null kalir - dogrulama bekliyor
+        ...(userRole === "EMPLOYER"
+          ? { employerProfile: { create: {} } }
+          : {
+              translatorProfile: {
+                create: {
+                  tier: userRole === "STUDENT" ? "JUNIOR" : "INDIVIDUAL",
+                  title: userRole === "STUDENT" ? "Ogrenci Tercuman" : "Tercuman",
+                },
+              },
+            }),
       },
     });
 
