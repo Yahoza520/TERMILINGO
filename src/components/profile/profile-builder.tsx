@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StepIndicator from "@/components/ui/step-indicator";
 import {
   User,
@@ -77,6 +77,7 @@ interface GlossaryTerm {
 export default function ProfileBuilder() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Form state
   const [form, setForm] = useState({
@@ -121,6 +122,49 @@ export default function ProfileBuilder() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.profile) {
+            const p = data.profile;
+            setForm((prev) => ({
+              ...prev,
+              title: p.title || "",
+              bio: p.bio || "",
+              city: p.city || "",
+              experienceYears: p.experienceYears || 0,
+              profileSlug: p.profileSlug || "",
+              languagePairs: p.languagePairs?.length ? p.languagePairs : prev.languagePairs,
+              specializations: p.specializations || [],
+              catTools: p.catTools || [],
+              certifications: p.certifications || [],
+              education: p.education || [],
+              interpreterTypes: p.interpreterTypes || [],
+              hasInfoport: p.hasInfoport || false,
+              equipmentNotes: p.equipmentNotes || "",
+              hourlyRate: p.hourlyRate?.toString() || "",
+              dailyRate: p.dailyRate?.toString() || "",
+              wordRate: p.wordRate?.toString() || "",
+              currency: p.currency || "TRY",
+              // Load glossary if exists
+              glossaryTitle: p.glossaries?.[0]?.title || "",
+              glossaryField: p.glossaries?.[0]?.field || "",
+              // Note: the backend actually maps terms, we might not get them directly here if nested, but let's try
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Profil yuklenemedi", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   const nextStep = () => setCurrentStep((s) => Math.min(s + 1, STEPS.length - 1));
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
@@ -149,6 +193,10 @@ export default function ProfileBuilder() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return <div className="flex justify-center py-20"><div className="animate-spin text-4xl">⏳</div></div>;
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
