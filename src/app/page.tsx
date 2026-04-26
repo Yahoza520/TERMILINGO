@@ -67,32 +67,50 @@ export default function HomePage() {
       </section>
 
       {/* Referans Kurumlar / Logolar */}
-      <section className="py-10 border-t border-b border-gray-100 bg-white">
+      <section className="py-16 border-t border-b border-gray-100 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <p className="text-center text-sm font-medium text-gray-400 mb-6 uppercase tracking-wider">
-            Kurumsal Müşterilerimiz ve Referanslarımız
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-            {/* Ornek Logolar (Gercek projede img ile degistirilir) */}
-            <div className="text-xl font-bold font-serif text-gray-800 flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-md"></div>
-              TechNova
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Kurumsal Referanslarımız</h2>
+            <p className="text-gray-500">Terminolojik hassasiyet gerektiren projelerde güvenilen platform.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
+            {/* Resmi Referanslar */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-400 mb-6 uppercase tracking-wider border-b pb-2">Resmi Kurumlar & Projeler</h3>
+              <div className="flex flex-wrap items-center gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                <div className="text-lg font-bold font-serif text-blue-800 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center text-white text-xs">UN</div>
+                  Birlesmis Milletler
+                </div>
+                <div className="text-lg font-black tracking-tighter text-blue-600 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center text-xs">EU</div>
+                  AB Projeleri
+                </div>
+                <div className="text-lg font-semibold text-red-700 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-red-700 rounded-sm flex items-center justify-center text-white text-xs">TC</div>
+                  Bakanliklar
+                </div>
+              </div>
             </div>
-            <div className="text-xl font-black tracking-tighter text-gray-800 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full border-4 border-rose-600"></div>
-              GlobalMed
-            </div>
-            <div className="text-xl font-semibold italic text-gray-800 flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-500 rotate-45"></div>
-              EcoEnergy
-            </div>
-            <div className="text-xl font-bold tracking-widest text-gray-800 flex items-center gap-2">
-              <div className="w-8 h-2 bg-indigo-600"></div>
-              LEGAL&CO
-            </div>
-            <div className="text-xl font-medium text-gray-800 flex items-center gap-2">
-              <div className="w-6 h-6 border-2 border-amber-500 rounded-sm"></div>
-              BuildCorp
+
+            {/* Ozel Referanslar */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-400 mb-6 uppercase tracking-wider border-b pb-2">Ozel Sektor (Zorlu Terminoloji)</h3>
+              <div className="flex flex-wrap items-center gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                <div className="text-lg font-bold font-serif text-emerald-800 flex items-center gap-2">
+                  <div className="w-6 h-6 bg-emerald-800 rounded-sm"></div>
+                  Medikal & Saglik
+                </div>
+                <div className="text-lg font-black tracking-widest text-slate-800 flex items-center gap-2">
+                  <div className="w-8 h-2 bg-slate-800"></div>
+                  Hukuk Burosu
+                </div>
+                <div className="text-lg font-medium text-amber-700 flex items-center gap-2">
+                  <div className="w-6 h-6 border-2 border-amber-700 rotate-45"></div>
+                  Maden & Enerji
+                </div>
+              </div>
             </div>
           </div>
         </div>

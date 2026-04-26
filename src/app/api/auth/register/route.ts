@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Kayit islemi sirasinda bir hata olustu. Lutfen tekrar deneyin." },
+      { error: "Kayit islemi sirasinda bir hata olustu. Hata: " + (error.message || String(error)) },
       { status: 500 }
     );
   }
